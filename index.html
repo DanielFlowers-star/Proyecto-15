@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards</title>
+
+    <style>
+        /* ============================
+           ESTILOS GENERALES DE LA PÁGINA
+           ============================ */
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4; /* Color suave de fondo */
+            display: flex; /* Centramos el contenedor */
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Ocupa toda la pantalla */
+            margin: 0;
+        }
+
+        /* Contenedor principal */
+        .container {
+            width: 400px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Barra de progreso (fondo) */
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #ddd;
+            border-radius: 8px;
+            overflow: hidden; /* Para que no se salga la barra azul */
+            margin-bottom: 10px;
+        }
+
+        /* Barra azul de progreso */
+        .progress {
+            height: 100%;
+            width: 0%; /* Se actualizará con JS */
+            background: #4b9bff;
+        }
+
+        /* Texto "1 of 3" */
+        .counter {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* Tarjeta donde sale pregunta/respuesta */
+        .card {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 120px; /* Para que no cambie de tamaño */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Contenedor de botones */
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Estilos de botones */
+        button {
+            background: #4b9bff;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    
+<!-- =====================================
+     CONTENIDO HTML VISIBLE DE LA APLICACIÓN
+     ===================================== -->
+
+<div class="container">
+
+    <!-- Título -->
+    <h2>Flash Cards</h2>
+
+    <!-- Barra de progreso -->
+    <div class="progress-bar">
+        <div id="progress" class="progress"></div>
+    </div>
+
+    <!-- Contador tipo "1 of 3" -->
+    <div id="counter" class="counter">1 of 3</div>
+
+    <!-- Tarjeta donde va pregunta o respuesta -->
+    <div id="card" class="card">Loading...</div>
+
+    <!-- Botones -->
+    <div class="buttons">
+        <button id="prevBtn">Previous</button>
+        <button id="toggleBtn">Show Answer</button>
+        <button id="nextBtn">Next</button>
+    </div>
+
+</div>
+
+<script>
+    /* ======================================
+       1. TARJETAS PREDEFINIDAS (DATOS)
+       ====================================== */
+
+    const flashcards = [
+        {
+            question: "What is the difference between var, let, and const?",
+            answer: "var is function-scoped. let and const are block-scoped; let allows reassignment and const prevents it."
+        },
+        {
+            question: "What is a JavaScript promise?",
+            answer: "A promise is an object representing the eventual completion or failure of an asynchronous operation."
+        },
+        {
+            question: "What is a callback function?",
+            answer: "It is a function passed as an argument to another function to be executed later."
+        }
+    ];
+
+    /* ======================================
+       2. VARIABLES DE ESTADO
+       ====================================== */
+
+    let index = 0;          // Tarjeta actual (posición del arreglo)
+    let showAnswer = false; // Controla si se muestra pregunta o respuesta
+
+    /* ======================================
+       3. CAPTURAR ELEMENTOS DEL HTML
+       ====================================== */
+
+    const card = document.getElementById("card");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+
+    /* ======================================
+       4. FUNCIÓN PRINCIPAL: updateCard()
+       ====================================== */
+
+    function updateCard() {
+
+        // Selecciona el objeto de la tarjeta actual
+        const item = flashcards[index];
+
+        // Si showAnswer es true → muestra respuesta, si no → pregunta
+        card.textContent = showAnswer ? item.answer : item.question;
+
+        // Cambia texto del botón según lo que se muestra
+        toggleBtn.textContent = showAnswer ? "Hide Answer" : "Show Answer";
+
+        // Actualiza contador tipo: "2 of 3"
+        counter.textContent = `${index + 1} of ${flashcards.length}`;
+        
+        // Calcula porcentaje para barra de progreso
+        const percentage = ((index + 1) / flashcards.length) * 100;
+        progress.style.width = percentage + "%";
+
+        // Deshabilita botón Previous si estamos en la primera
+        prevBtn.disabled = index === 0;
+
+        // Deshabilita botón Next si estamos en la última
+        nextBtn.disabled = index === flashcards.length - 1;
+    }
+
+    /* ======================================
+       5. EVENTOS DE LOS BOTONES
+       ====================================== */
+
+    // Botón Mostrar/Ocultar respuesta
+    toggleBtn.addEventListener("click", () => {
+        showAnswer = !showAnswer; // Cambia de pregunta ↔ respuesta
+        updateCard(); // Refresca contenido
+    });
+
+    // Botón Next (siguiente tarjeta)
+    nextBtn.addEventListener("click", () => {
+        if (index < flashcards.length - 1) {
+            index++;            // Avanza a la siguiente tarjeta
+            showAnswer = false; // Siempre inicia mostrando la pregunta
+            updateCard();       // Actualiza vista
+        }
+    });
+
+    // Botón Previous (tarjeta anterior)
+    prevBtn.addEventListener("click", () => {
+        if (index > 0) {
+            index--;            // Retrocede una tarjeta
+            showAnswer = false; // Siempre inicia mostrando la pregunta
+            updateCard();       // Actualiza vista
+        }
+    });
+
+    /* ======================================
+       6. INICIO: CARGAR PRIMERA TARJETA
+       ====================================== */
+
+    updateCard(); // Carga inicial al abrir la app
+</script>
+
+</body>
+</html>
